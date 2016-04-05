@@ -2,9 +2,9 @@
 
 ##How to use the Knurld JavaScript SDK
 
-### Extract the html docs from the docs folder to your local machine and open KnurldSDK.html
+1. Extract the html docs from the docs folder to your local machine and open KnurldSDK.html
 
-### The JavaScript file can be found in the root folder - knurldsdk.js and can be hosted at your location of choice.
+2. The JavaScript file can be found in the root folder - knurldsdk.js and can be hosted at your location of choice.
 
 
 To check out an HTML5 based application we built using the SDK, check out:
