@@ -1,4 +1,4 @@
-#execute follwing commands
+#execute following commands
 
 npm install
 gulp build
@@ -7,6 +7,15 @@ gulp build
 
 gulp test
 
-#For creating documentation
-./node_modules/.bin/jsdoc app/src/sdk.js
+#For creating documentation first command create documentations with basic template and the second one will create ink-docstrap template
+./node_modules/.bin/jsdoc app/src/sdk.js or 
 ./node_modules/.bin/jsdoc -c jsdoc.conf -t ./node_modules/ink-docstrap/template
+
+For Accesstoken use SDK as
+ 
+              var inputs={};
+              inputs.client_id="";
+              inputs.client_secret="";
+              inputs.developer_id="";
+              
+              KnurldSDK.auth.accesstoken(inputs, successCallback, errorCallBack);
