@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sdk.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sdk.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * KnurldSDK Class, To call SDK api's which can be consumed by any UI
+ * technologies
+ *
+ * @example Asynchronous call:
+ *          accesstoken use
+ *
+ *          var inputs={};
+ *          inputs.client_id=client_id;
+ *          inputs.client_secret=client_secret;
+ *          KnurldSDK.auth.accesstoken(inputs,
+ *          successCallback, errorCallBack);
+ *
+ * @example Synchronous call :
+ *          accesstoken use : **synchronous requests on the main
+ *          thread have been deprecated due to the negative effects to the user experience.
+ *          so until you are using worker therad please do not use this option
+ *
+ *          var inputs={};
+ *          var aPIExtraParams={};
+ *          aPIExtraParams.async=true;
+ *          inputs.client_id=client_id;
+ *          inputs.client_secret=client_secret;
+ *          var response=KnurldSDK.auth.accesstoken(inputs,
+ *          successCallback, errorCallBack, aPIExtraParams);
+ * @namespace KnurldSDK
+ *
+ */
+
+'use strict';
+var KnurldSDK = KnurldSDK || {};
+
+/**
+ * Init the KnurldSDK object, which takes option as param
+ *
+ * @param options
+ *            options is javascript object which contents info for initializing
+ *            sdk
+ *
+ * @example var options = {}; var statusObj = KnurldSDK.init(options); if
+ *          (!statusObj.initialized) { alert(statusObj.message); return; }
+ * @memberOf KnurldSDK.prototype
+ */
+
+KnurldSDK.init = (function(options) {
+  var returnObj = {};
+  returnObj.initialized = true;
+  if (KnurldSDKUtil.isValidObj(options)) {
+    if ('host' in options) {
+      KnurldSDK.setHostUrl(options.host);
+    }
+    // TODO need add logger level and global serttings
+    // If something goes wrong then please set KnurldSDK to null as we do
+    // not want user to do
+    // any action without proper initialized SDK.
+  }
+  return returnObj;
+});
+
+/**
+ * Setting the host url for SDK typically https://api.knurld.io/ : KnurldSDK.setHostUrl('https://api.knurld.io/');
+ * @param  string function(url host url
+ */
+KnurldSDK.setHostUrl = (function(url) {
+  KnurldConstants.HOST = url;
+  KnurldSDKUtil.setupURL();
+});
+
+/**
+ * getting the host url back Utility api : KnurldSDK.getHostUrl()
+ * @return string hosturl;
+ */
+KnurldSDK.getHostUrl = (function() {
+  return KnurldConstants.HOST;
+});
+/**
+ * Uyility API for uploading file on server : KnurldSDK.uploadFile(url, bodyParams, successCallback,
+   errorCallBack)
+ * @param  url url where you want to upload file
+ * @param bodyParams
+ * @param successCallback {function}
+     						Success Call Back
+ * @param errorCallBack {function}
+     						Error Call Back
+ * @return response Response from API
+ */
+KnurldSDK.uploadFile = (function(url, bodyParams, successCallback,
+  errorCallBack) {
+  var aPIExtraParams = {};
+  var apiMetaData = KnurldSDKUtil.getAPIParams(aPIExtraParams,
+    successCallback, errorCallBack);
+  if (!KnurldSDKUtil.isValidObj(url)) {
+    return KnurldResponse.invalidInputResponse('invalid inputs',
+      apiMetaData);
+  }
+  apiMetaData.contentType = KnurldConstants.CONTENT_TYPE_MULTIPART_FORM_DATA;
+  apiMetaData.requestType = KnurldConstants.POST;
+  return KnurldHttpRequest.uploadFile(url, bodyParams, apiMetaData)
+});
+/*
+ * Get the host url
+ *
+ * @type {Function}
+ */
+KnurldSDK.clearInterval = (function(intervalId) {
+  if (KnurldSDKUtil.isValidObj(intervalId)) {
+    clearInterval(intervalId);
+  }
+});
+
+/*
+ * To set the dev_ID which is used to user in API's Set the cloud url
+ */
+KnurldSDK.setDevID = (function(devId) {
+  KnurldConstants.DEV_ID = devId;
+});
+/*
+ * Get the host url
+ *
+ * @type {Function}
+ */
+KnurldSDK.getDevID = (function() {
+  return KnurldConstants.DEV_ID;
+});
+
+KnurldSDK.setAccessToken = (function(token) {
+  KnurldConstants.ACCESS_TOKEN = token;
+});
+/*
+ * Get the host url
+ *
+ * @type {Function}
+ */
+KnurldSDK.getAccessToken = (function() {
+  return KnurldConstants.ACCESS_TOKEN;
+});
+/**
+ * Dealing with the user v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.auth.accesstoken(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.auth
+ */
+KnurldSDK.auth = (function() {
+  return {
+    /**
+		 * API to get access token
+
+		 * @param input {Object}
+								javascript object which contents all the inputs for API
+								e.g.
+								var inputs={};
+								inputs.client_id="client_id";
+								inputs.client_secret="client_secret";
+	   * @param successCallback {function}
+		 						Success Call Back
+   	 * @param errorCallBack {function}
+								Error Call Back
+		 * @memberOf KnurldSDK.auth.prototype
+		 */
+    accesstoken: function(input, successCallback, errorCallBack,
+      aPIExtraParams) {
+
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = KnurldConstants.LOGIN_TIMER;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        setInterval(function() {
+          KnurldAuthImpl.accesstoken(input, KnurldSDKUtil.commonCallBack,
+            KnurldSDKUtil.commonCallBack, aPIExtraParams)
+        }, interval);
+      }
+      return KnurldAuthImpl.accesstoken(input, successCallback,
+        errorCallBack, aPIExtraParams);
+
+    },
+    /**
+		 * API to get status
+	   * @param successCallback {function}
+		 						Success Call Back
+   	 * @param errorCallBack {function}
+								Error Call Back
+		 * @memberOf KnurldSDK.auth.prototype
+		 */
+    status: function(successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldAuthImpl.status(successCallback, errorCallBack,
+        aPIExtraParams);
+    }
+  };
+}(""));
+
+/**
+ * Dealing with the AppModel v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.appModel.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.appModel
+ */
+KnurldSDK.appModel = (function() {
+  return {
+    /**
+     * API to get status
+     * @param input {Object}
+    						javascript object which contents all the inputs for API
+    						&lt;p>&lt;/p>e.g.&lt;p>
+    						var inputs={};&lt;/p>&lt;p>
+    						inputs.enrollmentRepeats="enrollmentRepeats"; Required.&lt;/p>&lt;p>
+    						inputs.vocabulary="vocabulary"; Required. &lt;/p>&lt;p>
+    						inputs.verificationLength="verificationLength"; Required. &lt;/p>&lt;p>
+    						inputs.threshold=threshold; Optional. &lt;/p>&lt;p>
+    						inputs.autoThresholdEnable=autoThresholdEnable; Optional. &lt;/p>&lt;p>
+    						inputs.autoThresholdClearance=autoThresholdClearance; Optional. &lt;/p>&lt;p>
+    						inputs.autoThresholdMaxRise=autoThresholdMaxRise; Optional. &lt;/p>&lt;p>
+    						inputs.useModelUpdate=useModelUpdate; Optional. &lt;/p>&lt;p>
+    						inputs.modelUpdateDailyLimit=modelUpdateDailyLimit; Optional. &lt;/p>&lt;p>
+
+    						&lt;/p>----------Info-----------&lt;p>
+    						enrollmentRepeats:# of times the user is asked to repeat each phrase during the enrollment process. Minimum required is 3.&lt;/p>&lt;p>
+    						vocabulary:Consumers may enroll with any combination of the phrases associated with app-model. A subset of phrases will be selected for each verification.&lt;/p>&lt;p>
+    						verificationLength:# of phrases to use for verification. Recommended minimum is 3. Make sure that this is equal to or less than the number of phrases specified in the vocabulary parameter. The actual phrases asked for by the engine at verification time is a random subset of the phrase vocabulary.&lt;/p>
+    						threshold:Optional, Score threshold for verification.  Default 2 (typical range between 2 and 4)&lt;p>&lt;/p>
+    						autoThresholdEnable:Optional, If enabled, consumers who constantly score high will have their threshold adjusted automatically. (optional, default true) &lt;p>&lt;/p>
+    						autoThresholdClearance:Optional, Distance above the base threshold that a consumer's score needs to be to activate auto-adjustment. (optional, default 2.5)&lt;p>&lt;/p>
+    						autoThresholdMaxRise:Optional, Maximum value above the base threshold that a consumer's auto-adjustment will rise to. (optional, default 1.0)&lt;p>&lt;/p>
+    						useModelUpdate:Optional, Optional. Enable augmenting enrollment data with audio from successful verifications. (optional, default false)&lt;p>&lt;/p>
+    						modelUpdateDailyLimit:Optional, Maximum amount of times per day that model updating will be applied (default 1)&lt;p>&lt;/p>
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    post: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldAppModelImpl.post(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldAppModelImpl.get(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldAppModelImpl.get(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to getAll App model
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    getAll: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldAppModelImpl.getAll(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldAppModelImpl.getAll(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to getAll App model
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    getAllInOneCall: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER_FOR_GET_ALL_CALL;
+        }
+        response = setInterval(function() {
+          KnurldAppModelImpl.getAll(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldAppModelImpl.getAllInOneCall(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    del: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldAppModelImpl.del(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+/**
+ * Dealing with the Consumer v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.consumer.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.consumer
+ */
+KnurldSDK.consumer = (function() {
+  return {
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.consumer.prototype
+     */
+    post: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldConsumerImpl.post(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.consumer.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldConsumerImpl.get(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldConsumerImpl.get(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+
+    /**
+     * API to getAll App model
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    getAll: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldConsumerImpl.getAll(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldConsumerImpl.getAll(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to getAll App model
+     * @param successCallback {function}
+                Success Call Back
+     * @param errorCallBack {function}
+                Error Call Back
+     * @memberOf KnurldSDK.appModel.prototype
+     */
+    getAllInOneCall: function(input, successCallback, errorCallBack, aPIExtraParams) {
+        var response;
+        var isTimer = input.isTimer;
+        if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+          var interval = input.interval;
+          if (KnurldSDKUtil.isValidObj(interval)) {
+            interval = KnurldConstants.GLOBAL_TIMER_FOR_GET_ALL_CALL;
+          }
+          response = setInterval(function() {
+            KnurldAppModelImpl.getAll(input, successCallback,
+              errorCallBack)
+          }, interval);
+        } else {
+          response = KnurldConsumerImpl.getAllInOneCall(input, successCallback,
+            errorCallBack, aPIExtraParams);
+        }
+        return response;
+      },
+      /**
+       * API to get status
+       * @param successCallback {function}
+      						Success Call Back
+       * @param errorCallBack {function}
+      						Error Call Back
+       * @memberOf KnurldSDK.consumer.prototype
+       */
+    del: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldConsumerImpl.del(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.consumer.prototype
+     */
+    token: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldConsumerImpl.token(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+
+/**
+ * Dealing with the Enrollment v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.enrollment.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.enrollment
+ */
+KnurldSDK.enrollment = (function() {
+  return {
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    post: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldEnrollmentImpl.post(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    postWithFile: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldEnrollmentImpl.postWithFile(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+                Success Call Back
+     * @param errorCallBack {function}
+                Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    createAndPost: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldEnrollmentImpl.createAndPost(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldEnrollmentImpl.get(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldEnrollmentImpl.get(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    getAll: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldEnrollmentImpl.getAll(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldEnrollmentImpl.getAll(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.enrollment.prototype
+     */
+    del: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldEnrollmentImpl.del(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+
+/**
+ * Dealing with the Verification v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.enrollment.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.verification
+ */
+KnurldSDK.verification = (function() {
+  return {
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.verification.prototype
+     */
+    post: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldVerificationImpl.post(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.verification.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldVerificationImpl.get(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldVerificationImpl.get(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+                Success Call Back
+     * @param errorCallBack {function}
+                Error Call Back
+     * @memberOf KnurldSDK.verification.prototype
+     */
+    getAll: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldVerificationImpl.getAll(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldVerificationImpl.getAll(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.verification.prototype
+     */
+    del: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldVerificationImpl.del(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+
+/**
+ * Dealing with the Call v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.call.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.call
+ */
+KnurldSDK.call = (function() {
+  return {
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.call.prototype
+     */
+    post: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldCallImpl.post(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.call.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldCallImpl.get(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.call.prototype
+     */
+    del: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldCallImpl.del(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+
+/**
+ * Dealing with the Analytics v1 management, call function in this namespace as &lt;br/>&lt;br/>&lt;b>
+ * KnurldSDK.analytics.get(inputs, successCallback,
+ * errorCallBack);&lt;/b>
+ *
+ * @namespace KnurldSDK.analytics
+ */
+KnurldSDK.analytics = (function() {
+  return {
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.analytics.prototype
+     */
+    file: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldAnalysisImpl.file(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.analytics.prototype
+     */
+    get: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      var response;
+      var isTimer = input.isTimer;
+      if (KnurldSDKUtil.isValidObj(isTimer) &amp;&amp; isTimer) {
+        var interval = input.interval;
+        if (KnurldSDKUtil.isValidObj(interval)) {
+          interval = KnurldConstants.GLOBAL_TIMER;
+        }
+        response = setInterval(function() {
+          KnurldAnalysisImpl.get(input, successCallback,
+            errorCallBack)
+        }, interval);
+      } else {
+        response = KnurldAnalysisImpl.get(input, successCallback,
+          errorCallBack, aPIExtraParams);
+      }
+      return response;
+    },
+    /**
+     * API to get status
+     * @param successCallback {function}
+    						Success Call Back
+     * @param errorCallBack {function}
+    						Error Call Back
+     * @memberOf KnurldSDK.analytics.prototype
+     */
+    url: function(input, successCallback, errorCallBack, aPIExtraParams) {
+      return KnurldAnalysisImpl.url(input, successCallback,
+        errorCallBack, aPIExtraParams);
+    },
+  };
+}(""));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="KnurldSDK.html">KnurldSDK</a></li><li><a href="KnurldSDK.analytics.html">analytics</a></li><li><a href="KnurldSDK.appModel.html">appModel</a></li><li><a href="KnurldSDK.auth.html">auth</a></li><li><a href="KnurldSDK.call.html">call</a></li><li><a href="KnurldSDK.consumer.html">consumer</a></li><li><a href="KnurldSDK.enrollment.html">enrollment</a></li><li><a href="KnurldSDK.verification.html">verification</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Mar 24 2016 11:01:11 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
