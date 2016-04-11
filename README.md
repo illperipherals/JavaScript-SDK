@@ -7,7 +7,7 @@
 2. The JavaScript file can be found in the root folder - knurldsdk.js and can be hosted at your location of choice.
 
 
-To check out an HTML5 based application we built using the SDK, check out:
-https://knurldupload.herokuapp.com/
+We have developer a HTML5 based convenience app for developers using the SDK that allows you to explore the API functionality without writing any code. Check it out at:
+http://explore.knurld-demo.com/#/login
 
 To use this application, you will need valid security credentials that can be obtained from the Knurld Developer Portal at https://developer.knurld.io/
