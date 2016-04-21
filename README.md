@@ -8,6 +8,6 @@
 
 
 We have developer a HTML5 based convenience app for developers using the SDK that allows you to explore the API functionality without writing any code. Check it out at:
-http://explore.knurld-demo.com/#/login
+https://explore.knurld-demo.com/#/login
 
 To use this application, you will need valid security credentials that can be obtained from the Knurld Developer Portal at https://developer.knurld.io/
