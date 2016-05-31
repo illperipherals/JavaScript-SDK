@@ -11,3 +11,18 @@ We have developer a HTML5 based convenience app for developers using the SDK tha
 https://explore.knurld-demo.com/#/login
 
 To use this application, you will need valid security credentials that can be obtained from the Knurld Developer Portal at https://developer.knurld.io/
+
+For Devlopers:
+
+#execute follwing commands
+
+npm install
+gulp build
+# For test cases
+#./node_modules/karma/bin/karma  start ../websdk/app/test/jasmine/websdk_test.conf.js 
+
+gulp test
+
+#For creating documentation
+./node_modules/.bin/jsdoc app/src/sdk.js
+./node_modules/.bin/jsdoc -c jsdoc.conf -t ./node_modules/ink-docstrap/template
