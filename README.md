@@ -18,11 +18,14 @@ For Devlopers:
 
 npm install
 gulp build
- For test cases
+For test cases
+
 ./node_modules/karma/bin/karma  start ../JavaScript-SDK/app/test/jasmine/websdk_test.conf.js 
 
 gulp test
 
 For creating documentation
+
 ./node_modules/.bin/jsdoc app/src/sdk.js
+
 ./node_modules/.bin/jsdoc -c jsdoc.conf -t ./node_modules/ink-docstrap/template
