@@ -14,7 +14,7 @@ To use this application, you will need valid security credentials that can be ob
 
 For Devlopers:
 
-#execute follwing commands
+#Execute follwing commands
 
 $ npm install
 
@@ -33,3 +33,7 @@ For creating documentation
 $ ./node_modules/.bin/jsdoc app/src/sdk.js
 
 $ ./node_modules/.bin/jsdoc -c jsdoc.conf -t ./node_modules/ink-docstrap/template
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/knurld/JavaScript-SDK . This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
