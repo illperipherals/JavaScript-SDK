@@ -1,0 +1,1 @@
+var KnurldResponse=KnurldResponse||{};KnurldResponse.invalidInputResponse=function(s,e){var n={};return n.StatusCode=400,n.errorMessage="input param:"+s+" is missing",e.asyc?n:void e.errorCallBack(n)};
