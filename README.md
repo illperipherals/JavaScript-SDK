@@ -12,6 +12,7 @@ https://explore.knurld-demo.com/#/login
 
 To use this application, you will need valid security credentials that can be obtained from the Knurld Developer Portal at https://developer.knurld.io/
 
+#Demo https://explore.knurld-demo.com/
 For Devlopers:
 
 #Execute follwing commands
@@ -37,3 +38,4 @@ $ ./node_modules/.bin/jsdoc -c jsdoc.conf -t ./node_modules/ink-docstrap/templat
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/knurld/JavaScript-SDK . This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+
