@@ -15,7 +15,7 @@ To use this application, you will need valid security credentials that can be ob
 #Demo https://explore.knurld-demo.com/
 For Developers:
 
-#Execute follwing commands
+#Execute following commands
 
 $ npm install
 
