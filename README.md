@@ -13,9 +13,9 @@ https://explore.knurld-demo.com/#/login
 To use this application, you will need valid security credentials that can be obtained from the Knurld Developer Portal at https://developer.knurld.io/
 
 #Demo https://explore.knurld-demo.com/
-For Devlopers:
+For Developers:
 
-#Execute follwing commands
+#Execute following commands
 
 $ npm install
 
